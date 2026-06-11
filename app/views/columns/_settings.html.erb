@@ -1,0 +1,23 @@
+<div class="modal-overlay" data-controller="modal column-settings" data-modal-target="overlay" style="display:none">
+  <div class="modal-content" id="column-settings-modal">
+    <h2>Configurar Coluna</h2>
+    <%= form_with url: "#", method: :patch, data: { column_settings_target: "form" }, class: "column-settings-form" do |f| %>
+      <%= hidden_field_tag :id, nil, data: { column_settings_target: "id" } %>
+
+      <div class="form-group">
+        <%= label_tag :name, "Nome da coluna" %>
+        <%= text_field_tag :"column[name]", nil, data: { column_settings_target: "name" }, class: "form-input", required: true %>
+      </div>
+
+      <div class="form-group">
+        <%= label_tag :color, "Cor" %>
+        <%= color_field_tag :"column[color]", nil, data: { column_settings_target: "color" }, class: "form-color" %>
+      </div>
+
+      <div class="form-actions">
+        <button type="submit" class="btn btn-primary">Salvar</button>
+        <button type="button" class="btn btn-secondary" data-action="click->modal#close">Cancelar</button>
+      </div>
+    <% end %>
+  </div>
+</div>

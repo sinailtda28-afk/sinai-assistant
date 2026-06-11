@@ -1,0 +1,31 @@
+<h1>Histórico de Tarefas Concluídas</h1>
+<p><%= @tasks.size %> tarefas concluídas</p>
+
+<a href="/" class="back-link">← Voltar ao Kanban</a>
+
+<% if @tasks.any? %>
+  <table class="history-table">
+    <thead>
+      <tr>
+        <th>Tarefa</th>
+        <th>Concluída em</th>
+        <th>Coluna</th>
+        <th>Tags</th>
+        <th>Prioridade</th>
+      </tr>
+    </thead>
+    <tbody>
+      <% @tasks.each do |task| %>
+        <tr>
+          <td><%= task.title %></td>
+          <td><%= task.completed_at.strftime("%d/%m/%Y %H:%M") %></td>
+          <td><%= task.column&.name %></td>
+          <td><%= task.tags.map(&:name).join(", ") %></td>
+          <td><span class="priority-badge priority-<%= task.priority %>"><%= task.priority&.capitalize %></span></td>
+        </tr>
+      <% end %>
+    </tbody>
+  </table>
+<% else %>
+  <p class="empty-state">Nenhuma tarefa concluída ainda.</p>
+<% end %>

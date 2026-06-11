@@ -1,0 +1,17 @@
+<div class="subtask-item" data-controller="inline-edit" data-inline-edit-url-value="/tasks/<%= subtask.id %>">
+  <div class="subtask-checkbox">
+    <%= form_with model: subtask, local: false, class: "subtask-complete-form", data: { turbo: false } do |f| %>
+      <%= f.hidden_field :completed_at, value: subtask.completed_at? ? nil : Time.current.iso8601 %>
+      <button type="submit" class="subtask-check-btn <%= "completed" if subtask.completed_at? %>">
+        <%= subtask.completed_at? ? "✓" : "○" %>
+      </button>
+    <% end %>
+  </div>
+  <span class="subtask-title" data-inline-edit-target="display"><%= subtask.title %></span>
+  <div data-inline-edit-target="form" style="display:none">
+    <%= form_with model: subtask, local: false, data: { turbo: false }, style: "display:inline" do |f| %>
+      <%= f.text_field :title, value: subtask.title, data: { inline_edit_target: "input" } %>
+    <% end %>
+  </div>
+  <%= button_to "×", task_path(subtask), method: :delete, class: "subtask-delete" %>
+</div>

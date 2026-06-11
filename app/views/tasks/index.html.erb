@@ -1,0 +1,49 @@
+<div class="kanban-toolbar">
+  <button class="btn btn-primary" data-action="click->modal#open" data-modal-target="new-task-modal">
+    + Nova Tarefa
+  </button>
+</div>
+
+<div class="filter-bar" data-controller="filter">
+  <%= form_with url: root_path, method: :get, data: { filter_target: "form" }, class: "filter-form" do |f| %>
+    <div class="filter-group">
+      <%= f.label :priority, "Prioridade" %>
+      <%= f.select :priority, options_for_select([["Todas", ""], ["Alta", "high"], ["Média", "medium"], ["Baixa", "low"]], params[:priority]), {}, class: "filter-select", data: { action: "change->filter#submit" } %>
+    </div>
+
+    <div class="filter-group">
+      <%= f.label :tag, "Tag" %>
+      <%= f.select :tag, options_for_select([["Todas", ""]] + @tags.map { |t| [t.name, t.name] }, params[:tag]), {}, class: "filter-select", data: { action: "change->filter#submit" } %>
+    </div>
+
+    <div class="filter-group">
+      <%= f.label :start_date, "De" %>
+      <%= f.date_field :start_date, value: params[:start_date], data: { action: "change->filter#submit" }, class: "filter-date" %>
+    </div>
+
+    <div class="filter-group">
+      <%= f.label :end_date, "Até" %>
+      <%= f.date_field :end_date, value: params[:end_date], data: { action: "change->filter#submit" }, class: "filter-date" %>
+    </div>
+
+    <% if params[:priority].present? || params[:tag].present? || params[:start_date].present? || params[:end_date].present? %>
+      <div class="filter-group">
+        <%= label_tag :reset, "&nbsp;".html_safe %>
+        <%= link_to "Limpar filtros", root_path, class: "btn btn-secondary btn-sm" %>
+      </div>
+    <% end %>
+  <% end %>
+</div>
+
+<div class="modal-overlay" data-controller="modal" data-modal-target="overlay" style="display:none">
+  <div class="modal-content" id="new-task-modal">
+    <h2>Nova Tarefa</h2>
+    <%= render "tasks/form", task: Task.new %>
+  </div>
+</div>
+
+<div class="kanban-board" data-controller="kanban">
+  <% @columns.each do |column| %>
+    <%= render "columns/column", column: column %>
+  <% end %>
+</div>

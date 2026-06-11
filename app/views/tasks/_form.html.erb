@@ -1,0 +1,38 @@
+<%= form_with model: task, local: true, class: "task-form", data: { turbo: false } do |f| %>
+  <div class="form-group">
+    <%= f.label :title, "Título" %>
+    <%= f.text_field :title, required: true, placeholder: "O que precisa ser feito?" %>
+  </div>
+
+  <div class="form-group">
+    <%= f.label :description, "Descrição" %>
+    <%= f.text_area :description, rows: 3, placeholder: "Detalhes da tarefa (opcional)" %>
+  </div>
+
+  <div class="form-row">
+    <div class="form-group">
+      <%= f.label :due_date, "Data de vencimento" %>
+      <%= f.datetime_field :due_date %>
+    </div>
+
+    <div class="form-group">
+      <%= f.label :priority, "Prioridade" %>
+      <%= f.select :priority, options_for_select([["Baixa", 0], ["Média", 1], ["Alta", 2]], task.priority), {}, class: "form-select" %>
+    </div>
+  </div>
+
+  <div class="form-group">
+    <%= f.label :tags, "Tags (separadas por vírgula)" %>
+    <%= f.text_field :tags, value: task.tags&.map(&:name)&.join(", "), placeholder: "ex: trabalho, pessoal, urgente" %>
+  </div>
+
+  <div class="form-group">
+    <%= f.label :column_id, "Coluna" %>
+    <%= f.collection_select :column_id, Column.ordered, :id, :name, {}, class: "form-select" %>
+  </div>
+
+  <div class="form-actions">
+    <%= f.submit class: "btn btn-primary" %>
+    <button type="button" class="btn btn-secondary" data-action="click->modal#close">Cancelar</button>
+  </div>
+<% end %>

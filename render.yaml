@@ -1,0 +1,40 @@
+services:
+  - type: web
+    name: sinai-assistant
+    runtime: ruby
+    repo: https://github.com/sinailtda28-afk/sinai-assistant
+    plan: free
+    buildCommand: |
+      bundle install
+      bundle exec rails assets:precompile
+      bundle exec rails db:migrate
+    startCommand: bundle exec rails server -b 0.0.0.0 -p $PORT
+    envVars:
+      - key: RAILS_ENV
+        value: production
+      - key: RAILS_MASTER_KEY
+        sync: false
+      - key: RAILS_LOG_LEVEL
+        value: info
+      - key: RAILS_MAX_THREADS
+        value: "3"
+      - key: WEB_CONCURRENCY
+        value: "1"
+      - key: SOLID_QUEUE_IN_PUMA
+        value: "true"
+      - key: DATABASE_PATH
+        value: /data/production.sqlite3
+      - key: DEEPSEEK_API_KEY
+        sync: false
+      - key: GROQ_API_KEY
+        sync: false
+      - key: TELEGRAM_BOT_TOKEN
+        sync: false
+      - key: TELEGRAM_ERROR_REPORTS_CHAT_ID
+        sync: false
+      - key: SECRET_KEY_BASE
+        sync: false
+    disk:
+      name: sqlite-data
+      mountPath: /data
+      sizeGB: 1

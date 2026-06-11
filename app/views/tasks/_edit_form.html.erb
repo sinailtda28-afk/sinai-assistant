@@ -1,0 +1,29 @@
+<%= form_with model: task, method: :patch, local: false do |f| %>
+  <div>
+    <%= f.label :title, "Título" %>
+    <%= f.text_field :title, required: true, placeholder: "Digite o título da tarefa" %>
+  </div>
+
+  <div>
+    <%= f.label :description, "Descrição" %>
+    <%= f.text_area :description, rows: 3, placeholder: "Descrição (opcional)" %>
+  </div>
+
+  <div>
+    <%= f.label :due_date, "Data de vencimento" %>
+    <%= f.date_field :due_date %>
+  </div>
+
+  <div>
+    <%= f.label :priority, "Prioridade" %>
+    <%= f.select :priority, [["Baixa", "low"], ["Média", "medium"], ["Alta", "high"]] %>
+  </div>
+
+  <div>
+    <%= f.label :tags, "Tags" %>
+    <%= f.text_field :tags, value: task.tags&.pluck(:name)&.join(", "), placeholder: "Tags separadas por vírgula" %>
+  </div>
+
+  <%= f.submit "Salvar" %>
+  <button type="button" data-action="click->task-form#cancel">Cancelar</button>
+<% end %>

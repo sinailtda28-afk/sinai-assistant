@@ -1,0 +1,18 @@
+<h1><%= @date.strftime("%d/%m/%Y") %></h1>
+<%= link_to "← Voltar ao calendário", calendar_path(date: @date), class: "back-link" %>
+
+<% if @tasks.any? %>
+  <div class="day-tasks">
+    <% @tasks.each do |task| %>
+      <div class="task-card">
+        <h4><%= task.title %></h4>
+        <div class="task-meta">
+          <span class="priority-badge priority-<%= task.priority %>"><%= task.priority.capitalize %></span>
+          <%= task.due_date.strftime("%H:%M") if task.due_date %>
+        </div>
+      </div>
+    <% end %>
+  </div>
+<% else %>
+  <p>Nenhuma tarefa para este dia.</p>
+<% end %>

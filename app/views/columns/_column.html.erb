@@ -1,0 +1,28 @@
+<div class="kanban-column" style="border-top-color: <%= column.color %>" data-column-id="<%= column.id %>">
+  <h3>
+    <%= column.name %> (<%= column.tasks.size %>)
+    <button class="column-settings-btn" 
+            data-action="click->modal#open column_settings#open" 
+            data-modal-target="column-settings-modal"
+            title="Configurar coluna">⚙</button>
+  </h3>
+  <div class="kanban-tasks" data-kanban-target="column">
+    <% column.tasks.each do |task| %>
+      <%= render "tasks/task_card", task: task %>
+      <% if task.subtasks? %>
+        <div class="subtask-list">
+          <% task.subtasks.each do |subtask| %>
+            <%= render "tasks/subtask", subtask: subtask %>
+          <% end %>
+        </div>
+      <% end %>
+      <div class="subtask-form">
+        <%= form_with model: Task.new, url: tasks_path, local: false, class: "subtask-add-form", data: { turbo: false } do |f| %>
+          <%= f.hidden_field :parent_task_id, value: task.id %>
+          <%= f.text_field :title, placeholder: "+ Adicionar subtarefa", class: "subtask-input" %>
+          <%= f.submit "+", class: "subtask-add-btn" %>
+        <% end %>
+      </div>
+    <% end %>
+  </div>
+</div>

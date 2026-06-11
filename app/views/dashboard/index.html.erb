@@ -1,0 +1,92 @@
+<h1>Dashboard de Produtividade</h1>
+
+<div class="dashboard-grid">
+  <div class="dash-card">
+    <h3>Tarefas Criadas (Mês)</h3>
+    <div class="dash-value"><%= @created_this_month %></div>
+    <div class="dash-compare">
+      vs. mês anterior (<%= @created_last_month %>)
+    </div>
+  </div>
+
+  <div class="dash-card">
+    <h3>Tarefas Concluídas</h3>
+    <div class="dash-value"><%= @completed_this_month %></div>
+    <div class="dash-compare">
+      vs. mês anterior (<%= @completed_last_month %>)
+    </div>
+  </div>
+
+  <div class="dash-card">
+    <h3>Taxa de Conclusão</h3>
+    <div class="dash-value"><%= @completion_rate %>%</div>
+  </div>
+
+  <div class="dash-card dash-card-warning">
+    <h3>Tarefas Atrasadas</h3>
+    <div class="dash-value"><%= @overdue_count %></div>
+    <div class="dash-compare"><%= @overdue_rate %>% das pendentes</div>
+  </div>
+</div>
+
+<div class="dashboard-grid-2">
+  <div class="dash-card">
+    <h3>Distribuição por Prioridade</h3>
+    <div class="priority-distribution">
+      <div class="priority-row">
+        <span class="priority-label">Alta</span>
+        <div class="priority-bar">
+          <div class="bar-fill bar-high" style="width: <%= @total_pending > 0 ? (@high_priority.to_f / [@high_priority + @medium_priority + @low_priority, 1].max * 100).round : 0 %>%"></div>
+        </div>
+        <span class="priority-count"><%= @high_priority %></span>
+      </div>
+      <div class="priority-row">
+        <span class="priority-label">Média</span>
+        <div class="priority-bar">
+          <div class="bar-fill bar-medium" style="width: <%= @total_pending > 0 ? (@medium_priority.to_f / [@high_priority + @medium_priority + @low_priority, 1].max * 100).round : 0 %>%"></div>
+        </div>
+        <span class="priority-count"><%= @medium_priority %></span>
+      </div>
+      <div class="priority-row">
+        <span class="priority-label">Baixa</span>
+        <div class="priority-bar">
+          <div class="bar-fill bar-low" style="width: <%= @total_pending > 0 ? (@low_priority.to_f / [@high_priority + @medium_priority + @low_priority, 1].max * 100).round : 0 %>%"></div>
+        </div>
+        <span class="priority-count"><%= @low_priority %></span>
+      </div>
+    </div>
+  </div>
+
+  <div class="dash-card">
+    <h3>Evolução Semanal</h3>
+    <div class="weekly-chart">
+      <table class="weekly-table">
+        <thead>
+          <tr><th>Semana</th><th>Criadas</th><th>Concluídas</th></tr>
+        </thead>
+        <tbody>
+          <% @weekly_data.each do |week| %>
+            <tr><td><%= week[:week] %></td><td><%= week[:created] %></td><td><%= week[:completed] %></td></tr>
+          <% end %>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<div class="dash-card">
+  <h3>Dias Mais Produtivos</h3>
+  <div class="productive-days">
+    <% @most_productive_days.each do |day_name, count| %>
+      <div class="day-stat">
+        <span class="day-name"><%= day_name %></span>
+        <span class="day-count"><%= count %> conclusões</span>
+      </div>
+    <% end %>
+    <% if @most_productive_days.empty? %>
+      <p class="empty-state">Nenhuma tarefa concluída este mês.</p>
+    <% end %>
+  </div>
+</div>
+
+<%= link_to "← Voltar ao Kanban", root_path, class: "back-link" %>

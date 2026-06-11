@@ -1,0 +1,30 @@
+<div class="task-card<%= " completed-task" if task.completed_at? %>" data-task-id="<%= task.id %>">
+  <div data-controller="inline-edit" data-inline-edit-url-value="/tasks/<%= task.id %>">
+    <h4 data-inline-edit-target="display"><%= task.title %></h4>
+    <div data-inline-edit-target="form" style="display:none">
+      <%= form_with model: task, local: false, data: { turbo: false }, style: "display:inline" do |f| %>
+        <%= f.text_field :title, value: task.title, data: { inline_edit_target: "input" }, class: "inline-edit-input" %>
+      <% end %>
+    </div>
+  </div>
+
+  <div class="task-meta">
+    <% if task.due_date? %>
+      <span class="due-date"><%= task.due_date.strftime("%d/%m/%Y") %></span>
+    <% end %>
+    <% if task.priority.present? %>
+      <span class="priority-badge priority-<%= task.priority %>"><%= task.priority.capitalize %></span>
+    <% end %>
+    <% if task.is_recurring? %>
+      <span class="recurring-badge">↻ <%= task.recurring_interval %></span>
+    <% end %>
+    <% task.tags.each do |tag| %>
+      <span class="tag-pill"><%= tag.name %></span>
+    <% end %>
+  </div>
+
+  <div class="task-actions">
+    <%= button_to "Concluir", task_path(task), method: :patch, params: { task: { completed_at: Time.current.iso8601 } }, class: "btn-complete" %>
+    <%= button_to "Excluir", task_path(task), method: :delete, data: { confirm: "Excluir esta tarefa?" }, class: "btn-delete" %>
+  </div>
+</div>

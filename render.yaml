@@ -12,6 +12,8 @@ services:
     envVars:
       - key: RAILS_ENV
         value: production
+      - key: RAILS_SERVE_STATIC_FILES
+        value: "true"
       - key: RAILS_MASTER_KEY
         sync: false
       - key: RAILS_LOG_LEVEL
@@ -23,7 +25,7 @@ services:
       - key: SOLID_QUEUE_IN_PUMA
         value: "true"
       - key: DATABASE_PATH
-        value: /data/production.sqlite3
+        value: db/production.sqlite3
       - key: DEEPSEEK_API_KEY
         sync: false
       - key: GROQ_API_KEY
@@ -34,7 +36,3 @@ services:
         sync: false
       - key: SECRET_KEY_BASE
         sync: false
-    disk:
-      name: sqlite-data
-      mountPath: /data
-      sizeGB: 1

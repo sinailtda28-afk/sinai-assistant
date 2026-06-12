@@ -1,0 +1,21 @@
+app = "sinai-assistant"
+primary_region = "gru"
+
+[build]
+  dockerfile = "Dockerfile"
+
+[env]
+  RAILS_ENV = "production"
+  RAILS_LOG_LEVEL = "info"
+  RAILS_MAX_THREADS = "3"
+  WEB_CONCURRENCY = "1"
+  SOLID_QUEUE_IN_PUMA = "true"
+  DATABASE_PATH = "/data/production.sqlite3"
+
+[mounts]
+  source = "sqlite_data"
+  destination = "/data"
+
+[[vm]]
+  size = "shared-cpu-1x"
+  memory = "256mb"

@@ -486,14 +486,22 @@ export default class extends Controller {
   closeWppModal() { this.wppModalTarget.style.display = "none" }
 
   loadWppInstances() {
+    const sel = this.wppInstanceTarget
+    sel.innerHTML = '<option value="default">Default</option>'
+
     fetch("/whatsapp/instances", { headers: { "Accept": "application/json" } })
       .then(r => r.json()).then(instances => {
-        const sel = document.getElementById("wpp-instance-select")
         sel.innerHTML = ""
-        instances.forEach(i => {
-          sel.innerHTML += `<option value="${i.name}">${i.name}</option>`
-        })
-      }).catch(() => {})
+        if (instances && instances.length > 0) {
+          instances.forEach(i => {
+            sel.innerHTML += `<option value="${i.name}" ${i.connected ? '' : 'disabled'}>${i.name}${i.connected ? '' : ' (offline)'}</option>`
+          })
+        } else {
+          sel.innerHTML = '<option value="default">Default</option>'
+        }
+      }).catch(() => {
+        sel.innerHTML = '<option value="default">Default</option>'
+      })
   }
 
   generateWppMessage() {

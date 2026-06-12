@@ -32,7 +32,7 @@ services:
         sync: false
       - key: TELEGRAM_BOT_TOKEN
         sync: false
-      - key: TELEGRAM_ERROR_REPORTS_CHAT_ID
-        sync: false
+      - key: SECRET_KEY_BASE
+        value: "28c0ffc2ceabd6b2fad5ec46fe4fc773d8643dc8922fb4c3655bbf1df47d375aa73e4ca33526bfe6982fe7badb0012ef15c5e3e40b76ec4891f57b60672ef071"
       - key: SECRET_KEY_BASE
         sync: false

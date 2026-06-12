@@ -167,6 +167,10 @@
         <label>Mensagem</label>
         <textarea data-kanban-target="wppMessage" rows="4" placeholder="Digite a mensagem..."></textarea>
       </div>
+      <div class="form-group" id="wpp-files-section" style="display:none">
+        <label>Anexar arquivo do card</label>
+        <div id="wpp-files-list" style="max-height:120px;overflow-y:auto;font-size:0.8rem"></div>
+      </div>
       <div class="form-actions">
         <button class="btn btn-secondary" data-action="kanban#generateWppMessage">Gerar com IA</button>
         <button class="btn btn-primary" data-action="kanban#sendWpp">Enviar</button>

@@ -476,11 +476,34 @@ export default class extends Controller {
   /* ───── WhatsApp ───── */
   openWppModal(event) {
     const title = event.currentTarget.dataset.taskTitle
-    this._wppTaskId = event.currentTarget.dataset.taskId
+    const taskId = event.currentTarget.dataset.taskId
+    this._wppTaskId = taskId
     this.wppModalTarget.style.display = "flex"
     this.wppNumberTarget.focus()
     if (title && this.hasWppMessageTarget) this.wppMessageTarget.value = `Ola! Tudo bem? Sobre: ${title}`
     this.loadWppInstances()
+    this.loadWppTaskFiles(taskId)
+  }
+
+  loadWppTaskFiles(taskId) {
+    const section = document.getElementById("wpp-files-section")
+    const list = document.getElementById("wpp-files-list")
+    section.style.display = "none"
+    list.innerHTML = ""
+
+    if (!taskId) return
+
+    fetch(`/tasks/${taskId}`, { headers: { "Accept": "application/json" } })
+      .then(r => r.json()).then(task => {
+        if (!task.files || task.files.length === 0) return
+        section.style.display = "block"
+        task.files.forEach(f => {
+          const label = document.createElement("label")
+          label.style.cssText = "display:flex;align-items:center;gap:4px;padding:2px 0;cursor:pointer"
+          label.innerHTML = `<input type="checkbox" name="wpp-file" value="${f.id}" data-url="${f.url}" data-name="${f.name}"> ${f.name}`
+          list.appendChild(label)
+        })
+      }).catch(() => {})
   }
 
   closeWppModal() { this.wppModalTarget.style.display = "none" }
@@ -524,10 +547,16 @@ export default class extends Controller {
     const message = this.wppMessageTarget.value.trim()
     if (!number || !message) { alert("Preencha numero e mensagem"); return }
 
+    const checkedFiles = document.querySelectorAll("#wpp-files-list input[type=checkbox]:checked")
+    const fileIds = Array.from(checkedFiles).map(cb => cb.value).join(",")
+
+    const body = new URLSearchParams({ instance, number, message })
+    if (fileIds) body.set("file_ids", fileIds)
+
     fetch("/whatsapp/send", {
       method: "POST",
       headers: { "X-CSRF-Token": this.csrf(), "Content-Type": "application/x-www-form-urlencoded" },
-      body: new URLSearchParams({ instance, number, message })
+      body: body
     }).then(r => r.json()).then(data => {
       if (data.success) {
         alert("Mensagem enviada!")
@@ -538,6 +567,10 @@ export default class extends Controller {
       } else {
         alert("Erro: " + (data.error || "Falha ao enviar"))
       }
+    }).catch(() => {
+      alert("Erro de conexao com o servidor. Verifique se o servidor WhatsApp (wpp-server.js) esta rodando.")
+    })
+  }
     }).catch(() => {
       alert("Erro de conexao com o servidor. Verifique se o servidor WhatsApp (wpp-server.js) esta rodando.")
     })

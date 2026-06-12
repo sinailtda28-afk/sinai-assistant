@@ -7,12 +7,13 @@ Rails.application.routes.draw do
   root "tasks#index"
 
   # Tasks
-  resources :tasks, only: [ :index, :create, :update, :destroy ] do
+  resources :tasks, only: [ :index, :show, :create, :update, :destroy ] do
     member { post :move }
+    resources :comments, only: [ :create ]
   end
 
   # Columns
-  resources :columns, only: [ :update ]
+  resources :columns, only: [ :create, :update, :destroy ]
 
   # History
   get "history" => "history#index"
@@ -20,6 +21,26 @@ Rails.application.routes.draw do
   # Calendar
   get "calendar" => "calendar#index", as: :calendar
   get "calendar/day" => "calendar#day", as: :calendar_day
+
+  # Tags
+  get "tags" => "tags#index"
+  post "tags" => "tags#create"
+  delete "tags/:id" => "tags#destroy", as: :tag
+
+  # Settings / AI Context
+  get "settings" => "settings#index"
+  post "settings" => "settings#update"
+
+  # AI Chat
+  post "chat/ask" => "chat#ask"
+  post "chat/analyze" => "chat#analyze"
+
+  # WhatsApp
+  post "whatsapp/send" => "whatsapp#send_message"
+  post "whatsapp/generate_message" => "whatsapp#generate_message"
+  get "whatsapp/instances" => "whatsapp#instances"
+  get "whatsapp/qrcode" => "whatsapp#qrcode"
+  post "whatsapp/reconnect" => "whatsapp#reconnect"
 
   # Subtasks
   resources :subtasks, only: [ :create, :update ]

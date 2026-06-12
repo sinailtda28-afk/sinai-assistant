@@ -5,15 +5,33 @@ class WhatsappController < ApplicationController
     instance = params[:instance] || "default"
     number = params[:number].to_s.gsub(/\D/, "")
     message = params[:message].to_s.strip
+    file_ids = params[:file_ids].to_s.split(",").map(&:strip).reject(&:blank?)
 
     return render json: { error: "Numero ou mensagem vazios" }, status: 422 if number.blank? || message.blank?
+
+    file_data = nil
+    file_name = nil
+    file_mime = nil
+
+    if file_ids.any?
+      blob = ActiveStorage::Blob.find_by(id: file_ids.first)
+      if blob
+        file_data = Base64.strict_encode64(blob.download)
+        file_name = blob.filename.to_s
+        file_mime = blob.content_type
+      end
+    end
 
     begin
       uri = URI("#{WPP_SERVER}/send")
       http = Net::HTTP.new(uri.host, uri.port)
       http.read_timeout = 20
       req = Net::HTTP::Post.new(uri.path, { "Content-Type" => "application/json" })
-      req.body = { instance: instance, number: number, message: message }.to_json
+      body = { instance: instance, number: number, message: message }
+      if file_data
+        body[:file] = { data: file_data, name: file_name, mimetype: file_mime }
+      end
+      req.body = body.to_json
       res = http.request(req)
       data = JSON.parse(res.body)
 

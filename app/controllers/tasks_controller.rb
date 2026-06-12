@@ -10,6 +10,11 @@ class TasksController < ApplicationController
     @tags = Tag.all.order(:name)
   end
 
+  def show
+    task = Task.includes(:tags, :comments).find(params[:id])
+    render json: task_json(task)
+  end
+
   def create
     result = Tasks::CreateTask.call(task_params)
 

@@ -337,6 +337,15 @@ nav .app-name { font-weight: 700; font-size: 1rem; margin-right: 0.5rem; }
 .calendar-table th { background: #f9fafb; padding: 0.4rem; font-size: 0.75rem; color: var(--text-secondary); text-align: center; }
 .calendar-table td { border: 1px solid #f3f4f6; padding: 0.2rem; vertical-align: top; height: 70px; width: 14.28%; }
 .calendar-table td.today { background: #eff6ff; }
+.calendar-table td.today .day-number { background: #3b82f6; color: white; border-radius: 50%; width: 24px; height: 24px; display: inline-flex; align-items: center; justify-content: center; }
+.day-number { font-weight: 600; font-size: 0.85rem; }
+.calendar-day { padding: 2px 4px; transition: background 0.1s; border-radius: 4px; }
+.calendar-day:hover { background: rgba(59,130,246,0.1); }
+.calendar-event { font-size: 0.68rem; padding: 1px 3px; border-radius: 3px; margin: 1px 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; cursor: default; }
+.calendar-event.priority-high { background: #fee2e2; color: #dc2626; }
+.calendar-event.priority-medium { background: #fef9c3; color: #ca8a04; }
+.calendar-event.priority-low { background: #e5e7eb; color: #6b7280; }
+.calendar-table td.other-month { opacity: 0.4; }
 
 /* Recurring badge */
 .recurring-badge { display: inline-block; background: #fef3c7; color: #92400e; padding: 0.1rem 0.35rem; border-radius: 3px; font-size: 0.65rem; }

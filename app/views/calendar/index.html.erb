@@ -1,32 +1,73 @@
-<h1>Calendário</h1>
-<div class="calendar-nav">
-  <%= link_to "← Mês anterior", calendar_path(date: (@date - 1.month).beginning_of_month), class: "btn btn-secondary" %>
-  <h2><%= @date.strftime("%B %Y") %></h2>
-  <%= link_to "Próximo mês →", calendar_path(date: (@date + 1.month).beginning_of_month), class: "btn btn-secondary" %>
-</div>
+<div data-controller="calendar" data-calendar-default-column="<%= Column.ordered.first&.id %>">
+  <h1>Calendário</h1>
+  <div class="calendar-nav">
+    <%= link_to "← Mês anterior", calendar_path(date: (@date - 1.month).beginning_of_month), class: "btn btn-secondary" %>
+    <h2><%= l(@date, format: "%B %Y") %></h2>
+    <%= link_to "Próximo mês →", calendar_path(date: (@date + 1.month).beginning_of_month), class: "btn btn-secondary" %>
+  </div>
 
-<table class="calendar-table">
-  <thead>
-    <tr>
-      <th>Dom</th><th>Seg</th><th>Ter</th><th>Qua</th><th>Qui</th><th>Sex</th><th>Sáb</th>
-    </tr>
-  </thead>
-  <tbody>
-    <% (@start_date..@end_date).each_slice(7) do |week| %>
+  <div class="modal-overlay" data-calendar-target="modal" style="display:none">
+    <div class="modal-content">
+      <h2>Nova Tarefa - <span data-calendar-target="dateDisplay"></span></h2>
+      <form data-action="submit->calendar#createTask">
+        <div class="form-group">
+          <label>Titulo</label>
+          <input type="text" data-calendar-target="title" required placeholder="O que precisa ser feito?" style="width:100%;padding:0.45rem;border:1px solid #d1d5db;border-radius:5px;font-size:0.88rem;background:var(--card-bg);color:var(--text)">
+        </div>
+        <div class="form-group">
+          <label>Nota (opcional)</label>
+          <textarea data-calendar-target="desc" rows="2" placeholder="Detalhes..." style="width:100%;padding:0.45rem;border:1px solid #d1d5db;border-radius:5px;font-size:0.88rem;background:var(--card-bg);color:var(--text);resize:none"></textarea>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Prioridade</label>
+            <select data-calendar-target="priority" style="width:100%;padding:0.45rem;border:1px solid #d1d5db;border-radius:5px;font-size:0.88rem;background:var(--card-bg);color:var(--text)">
+              <option value="low">Baixa</option>
+              <option value="medium" selected>Media</option>
+              <option value="high">Alta</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Tags</label>
+            <input type="text" data-calendar-target="tags" placeholder="trabalho, pessoal" style="width:100%;padding:0.45rem;border:1px solid #d1d5db;border-radius:5px;font-size:0.88rem;background:var(--card-bg);color:var(--text)">
+          </div>
+        </div>
+        <input type="hidden" data-calendar-target="dateInput">
+        <div class="form-actions">
+          <button type="submit" class="btn btn-primary">Criar</button>
+          <button type="button" class="btn btn-secondary" data-action="calendar#closeModal">Cancelar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <table class="calendar-table">
+    <thead>
       <tr>
-        <% week.each do |day| %>
-          <td class="<%= "other-month" if day.month != @date.month %><%= " today" if day == Date.current %>">
-            <div class="calendar-day">
-              <%= link_to day.day, calendar_day_path(date: day), class: "day-link" %>
-            </div>
-            <% @tasks.select { |t| t.due_date&.to_date == day }.each do |task| %>
-              <div class="calendar-event priority-<%= task.priority %>">
-                <%= task.title %>
-              </div>
-            <% end %>
-          </td>
-        <% end %>
+        <th>Dom</th><th>Seg</th><th>Ter</th><th>Qua</th><th>Qui</th><th>Sex</th><th>Sáb</th>
       </tr>
-    <% end %>
-  </tbody>
-</table>
+    </thead>
+    <tbody>
+      <% (@start_date..@end_date).each_slice(7) do |week| %>
+        <tr>
+          <% week.each do |day| %>
+            <td class="<%= "other-month" if day.month != @date.month %><%= " today" if day == Date.current %>" data-date="<%= day.iso8601 %>">
+              <div class="calendar-day" data-action="click->calendar#openModal" style="cursor:pointer">
+                <span class="day-number"><%= day.day %></span>
+              </div>
+              <% day_tasks = @tasks.select { |t| t.due_date&.to_date == day } %>
+              <% day_tasks.each do |task| %>
+                <div class="calendar-event priority-<%= task.priority %>">
+                  <%= task.title %>
+                </div>
+              <% end %>
+              <% if day_tasks.any? %>
+                <span class="calendar-event-indicator" style="display:inline-block;background:#3b82f6;color:#fff;border-radius:50%;width:18px;height:18px;text-align:center;font-size:0.65rem;line-height:18px;margin:1px"><%= day_tasks.size %></span>
+              <% end %>
+            </td>
+          <% end %>
+        </tr>
+      <% end %>
+    </tbody>
+  </table>
+</div>

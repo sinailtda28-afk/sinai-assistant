@@ -758,7 +758,7 @@ export default class extends Controller {
   }
 
   columnHtml(col) {
-    return `<div class="kanban-column" style="border-top-color: ${col.color}" data-column-id="${col.id}">
+    return `<div class="kanban-column" style="border-top-color: ${col.color}; --column-top-color: ${col.color}" data-column-id="${col.id}">
       <h3>${this.escapeHtml(col.name)} (<span class="task-count">0</span>)
         <button class="column-settings-btn" data-action="kanban#openEditColumn" title="Configurar">&#9881;</button>
       </h3>

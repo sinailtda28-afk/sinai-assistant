@@ -1,35 +1,42 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <title><%= content_for(:title) || "Assistente de Produtividade" %></title>
+    <title><%= content_for(:title) || "Sinai Assistant" %></title>
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="application-name" content="Assistente de Produtividade">
-    <meta name="mobile-web-app-capable" content="yes">
     <%= csrf_meta_tags %>
     <%= csp_meta_tag %>
-
     <%= yield :head %>
-
-    <%# PWA manifest link - removed route that isn't registered %>
-
     <link rel="icon" href="/icon.png" type="image/png">
     <link rel="icon" href="/icon.svg" type="image/svg+xml">
-    <link rel="apple-touch-icon" href="/icon.png">
-
-    <%# Includes all stylesheet files in app/assets/stylesheets %>
     <%= stylesheet_link_tag :app, "data-turbo-track": "reload" %>
     <%= javascript_importmap_tags %>
-
-    <script>if("serviceWorker" in navigator){navigator.serviceWorker.register("/service-worker.js");}</script>
   </head>
-
   <body>
     <nav>
-      <a href="/" class="app-name">Assistente de Produtividade</a>
+      <a href="/" class="app-name">Sinai</a>
       <a href="/">Kanban</a>
-      <a href="/history">Histórico</a>
+      <a href="/dashboard">Dashboard</a>
+      <a href="/calendar">Calendario</a>
+      <a href="/history">Historico</a>
+      <a href="/settings">Config</a>
+      <button class="theme-toggle" onclick="
+        const body = document.body;
+        if (body.classList.contains('dark')) { body.classList.remove('dark'); body.classList.add('glass'); localStorage.setItem('theme','glass'); }
+        else if (body.classList.contains('glass')) { body.classList.remove('glass'); localStorage.setItem('theme','light'); }
+        else { body.classList.add('dark'); localStorage.setItem('theme','dark'); }
+        this.innerHTML = body.classList.contains('dark') ? '&#9790;' : body.classList.contains('glass') ? '&#9830;' : '&#9788;'
+      ">&#9788;</button>
     </nav>
+    <script>
+      (function() {
+        const theme = localStorage.getItem('theme')
+        if (theme === 'dark') document.body.classList.add('dark')
+        else if (theme === 'glass') document.body.classList.add('glass')
+        const btn = document.querySelector('.theme-toggle')
+        if (btn) btn.innerHTML = theme === 'dark' ? '&#9790;' : theme === 'glass' ? '&#9830;' : '&#9788;'
+      })()
+    </script>
     <main class="container">
       <%= yield %>
     </main>

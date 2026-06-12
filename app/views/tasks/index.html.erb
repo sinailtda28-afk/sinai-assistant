@@ -181,7 +181,7 @@
 
   <div class="kanban-board" data-kanban-target="board">
     <% @columns.each do |column| %>
-      <div class="kanban-column" style="border-top-color: <%= column.color %>" data-column-id="<%= column.id %>">
+      <div class="kanban-column" style="border-top-color: <%= column.color %>; --column-top-color: <%= column.color %>" data-column-id="<%= column.id %>">
         <h3>
           <%= column.name %> (<span class="task-count"><%= column.tasks.count %></span>)
           <button class="column-settings-btn" data-action="kanban#openEditColumn" title="Configurar">&#9881;</button>

@@ -20,7 +20,14 @@ module Telegram
         end
       end
 
-      ProcessTelegramMessageJob.perform_later(update_id) if update_id
+      if update_id
+        begin
+          msg = TelegramMessage.find_by!(update_id: update_id)
+          Telegram::ProcessMessage.call(msg)
+        rescue ActiveRecord::RecordNotFound
+          Rails.logger.warn("Telegram message #{update_id} not found")
+        end
+      end
       head :ok
     end
   end

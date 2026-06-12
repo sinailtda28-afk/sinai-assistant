@@ -14,7 +14,9 @@ module Telegram
     end
 
     def call
-      token = Rails.application.credentials.dig(:telegram, :bot_token)
+      token = ENV.fetch("TELEGRAM_BOT_TOKEN", nil) ||
+              Rails.application.credentials.dig(:telegram, :bot_token) ||
+              Setting.get("telegram_bot_token")
       return log_missing_token unless token
 
       uri = URI("#{TELEGRAM_API}#{token}/sendMessage")
@@ -27,7 +29,7 @@ module Telegram
       if response.is_a?(Net::HTTPSuccess)
         Result.new(success: true, data: JSON.parse(response.body))
       else
-        Result.new(success: false, errors: ["Telegram API error: #{response.code}"])
+        Result.new(success: false, errors: ["Telegram API error: #{response.code} - #{response.body}"])
       end
     rescue StandardError => e
       Result.new(success: false, errors: ["Telegram send error: #{e.message}"])

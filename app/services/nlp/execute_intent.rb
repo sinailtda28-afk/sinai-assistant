@@ -25,8 +25,26 @@ module NLP
     private
 
     def create_task
+      title = @entities[:title] || @entities[:task_query]
+      return missing_field(:title) unless title.present?
+
+      state = ConversationState.for_chat(@chat_id)
+
+      if @entities[:due_date].blank?
+        state.set_pending(:create_task, @entities.merge(state: :collecting_due))
+        Telegram::SendMessage.call(@chat_id, "📅 Qual o prazo? (ex: amanha, sexta, dia 15)")
+        return Result.new(success: true, data: { action: :prompt_due })
+      end
+
+      if @entities[:priority].blank? || @entities[:priority] == "medium"
+        state.set_pending(:create_task, @entities.merge(state: :collecting_priority))
+        Telegram::SendMessage.call(@chat_id, "⚡ Qual a prioridade? (alta, media, baixa)")
+        return Result.new(success: true, data: { action: :prompt_priority })
+      end
+
+      state.mark_idle!
       Tasks::CreateTask.call(
-        title: @entities[:title] || @entities[:task_query] || "Nova tarefa",
+        title: title,
         due_date: @entities[:due_date],
         priority: @entities[:priority] || "medium",
         tags: @entities[:tags] || []
@@ -100,6 +118,10 @@ module NLP
 
     def send_confirmation(result)
       if result.success?
+        data = result.data
+        # Skip confirmation for intermediate prompts (data is a Hash with action key)
+        return if data.is_a?(Hash) && data.key?(:action)
+
         Telegram::SendMessage.call(@chat_id, "✅ #{success_message(result)}")
       else
         error_msg = result.errors.is_a?(Array) ? result.errors.join(", ") : result.errors.to_s

@@ -532,9 +532,14 @@ export default class extends Controller {
       if (data.success) {
         alert("Mensagem enviada!")
         this.closeWppModal()
+      } else if (data.needsQr) {
+        alert(data.error || "WhatsApp desconectado. Clique no botao WhatsApp na barra superior para escanear o QR code.")
+        this.closeWppModal()
       } else {
         alert("Erro: " + (data.error || "Falha ao enviar"))
       }
+    }).catch(() => {
+      alert("Erro de conexao com o servidor. Verifique se o servidor WhatsApp (wpp-server.js) esta rodando.")
     })
   }
 

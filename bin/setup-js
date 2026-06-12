@@ -1,0 +1,29 @@
+#!/bin/bash
+# Setup JavaScript assets for development
+# Download vendor files and copy to public/assets/
+
+cd "$(dirname "$0")/.."
+
+mkdir -p public/assets/vendor public/assets/controllers
+
+# Download vendor files if not present
+if [ ! -f vendor/javascript/stimulus.js ]; then
+  mkdir -p vendor/javascript
+  curl -sL "https://unpkg.com/@hotwired/stimulus@3.2.2/dist/stimulus.js" -o vendor/javascript/stimulus.js
+  curl -sL "https://unpkg.com/@hotwired/stimulus-loading@2.0.0/dist/stimulus-loading.js" -o vendor/javascript/stimulus-loading.js
+  curl -sL "https://unpkg.com/sortablejs@1.15.6/modular/sortable.esm.js" -o vendor/javascript/sortablejs.js
+  curl -sL "https://unpkg.com/chartkick@5.0.2/dist/chartkick.js" -o vendor/javascript/chartkick.js
+  curl -sL "https://unpkg.com/chart.js@4.4.8/dist/chart.umd.js" -o vendor/javascript/chart.js
+fi
+
+# Copy to public/assets
+cp vendor/javascript/stimulus.js public/assets/vendor/
+cp vendor/javascript/stimulus-loading.js public/assets/vendor/
+cp vendor/javascript/sortablejs.js public/assets/vendor/
+cp vendor/javascript/chartkick.js public/assets/vendor/
+cp vendor/javascript/chart.js public/assets/vendor/
+cp app/javascript/controllers/*.js public/assets/controllers/
+cp app/javascript/application.js public/assets/
+
+echo "JS assets setup complete!"
+echo "Acesse: http://localhost:3001"

@@ -1,0 +1,1 @@
+Package version not found: chartkick@5.0.2

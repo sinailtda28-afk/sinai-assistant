@@ -90,3 +90,34 @@
 </div>
 
 <%= link_to "← Voltar ao Kanban", root_path, class: "back-link" %>
+
+<div class="dash-card" style="margin-top:1rem">
+  <h3>Análise da IA</h3>
+  <p id="ai-analysis-status" style="font-size:0.8rem;color:var(--text-secondary);margin-bottom:0.5rem">Clique para gerar uma análise de produtividade</p>
+  <div id="ai-analysis-content" style="font-size:0.85rem;line-height:1.6;white-space:pre-wrap"></div>
+  <button class="btn btn-primary btn-sm" id="ai-analysis-btn" onclick="runAiAnalysis()" style="margin-top:0.5rem">Gerar Análise</button>
+</div>
+
+<script>
+  function runAiAnalysis() {
+    const btn = document.getElementById("ai-analysis-btn")
+    const status = document.getElementById("ai-analysis-status")
+    const content = document.getElementById("ai-analysis-content")
+    btn.disabled = true
+    btn.textContent = "Analisando..."
+    status.textContent = "Consultando IA..."
+    fetch("/chat/analyze", {
+      method: "POST",
+      headers: { "X-CSRF-Token": document.querySelector("[name='csrf-token']")?.content || "", "Content-Type": "application/x-www-form-urlencoded" }
+    }).then(r => r.json()).then(data => {
+      content.textContent = data.analysis || data.error || "Erro ao gerar analise"
+      status.textContent = "Analise gerada:"
+      btn.disabled = false
+      btn.textContent = "Atualizar Analise"
+    }).catch(() => {
+      status.textContent = "Erro ao conectar com IA"
+      btn.disabled = false
+      btn.textContent = "Tentar Novamente"
+    })
+  }
+</script>

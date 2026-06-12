@@ -1,30 +1,69 @@
-<div class="task-card<%= " completed-task" if task.completed_at? %>" data-task-id="<%= task.id %>">
-  <div data-controller="inline-edit" data-inline-edit-url-value="/tasks/<%= task.id %>">
-    <h4 data-inline-edit-target="display"><%= task.title %></h4>
-    <div data-inline-edit-target="form" style="display:none">
-      <%= form_with model: task, local: false, data: { turbo: false }, style: "display:inline" do |f| %>
-        <%= f.text_field :title, value: task.title, data: { inline_edit_target: "input" }, class: "inline-edit-input" %>
+<div class="task-card<%= " completed-task" if task.completed_at? %>" data-task-id="<%= task.id %>" style="border-left: 3px solid <%= task.column.color %>">
+  <div>
+    <strong data-action="dblclick->kanban#editTaskTitle" data-task-id="<%= task.id %>"><%= task.title %></strong>
+  </div>
+
+  <% if task.description.present? %>
+    <div class="task-note" data-action="click->kanban#editTaskDescription" data-task-id="<%= task.id %>" style="font-size:0.75rem;color:var(--text-secondary);margin:0.2rem 0;cursor:text">
+      <%= truncate(task.description, length: 80) %>
+    </div>
+  <% else %>
+    <div class="task-note" data-action="click->kanban#editTaskDescription" data-task-id="<%= task.id %>" style="font-size:0.75rem;color:#9ca3af;margin:0.2rem 0;cursor:text">+ Nota</div>
+  <% end %>
+
+  <% if task.link.present? %>
+    <a href="<%= task.link %>" target="_blank" class="task-link" style="font-size:0.7rem;color:#3b82f6;display:inline-block;margin-top:2px;text-decoration:none">&#128279; <%= truncate(task.link, length: 30) %></a>
+  <% end %>
+
+  <% if task.files.attached? %>
+    <div style="margin-top:4px">
+      <% task.files.each do |file| %>
+        <% if file.image? %>
+          <%= image_tag file, style: "max-width:100%;max-height:80px;border-radius:4px;display:block;margin:2px 0" %>
+        <% else %>
+          <%= link_to "&#128206; #{file.filename}".html_safe, url_for(file), target: "_blank", style: "font-size:0.7rem;color:#6b7280;display:block" %>
+        <% end %>
       <% end %>
     </div>
+  <% end %>
+
+  <div class="comments-list">
+    <% task.comments.order(:created_at).last(2).each do |comment| %>
+      <div style="font-size:0.7rem;color:var(--text-secondary);padding:2px 0;border-top:1px solid #eee">
+        <%= truncate(comment.content, length: 60) %>
+        <span style="color:#9ca3af;font-size:0.65rem"><%= comment.created_at.strftime("%d/%m %H:%M") %></span>
+      </div>
+    <% end %>
+  </div>
+
+  <div class="comment-form" style="margin-top:4px">
+    <input type="text" placeholder="+ Comentario" data-action="keydown->kanban#commentOnEnter" data-task-id="<%= task.id %>" style="width:100%;border:1px dashed #d1d5db;border-radius:3px;padding:2px 6px;font-size:0.7rem;background:transparent">
   </div>
 
   <div class="task-meta">
     <% if task.due_date? %>
-      <span class="due-date"><%= task.due_date.strftime("%d/%m/%Y") %></span>
+      <span class="due-date <%= 'overdue' if task.due_date < Time.current && !task.completed_at? %>">
+        <%= task.due_date.strftime("%d/%m") %>
+      </span>
     <% end %>
-    <% if task.priority.present? %>
-      <span class="priority-badge priority-<%= task.priority %>"><%= task.priority.capitalize %></span>
-    <% end %>
-    <% if task.is_recurring? %>
-      <span class="recurring-badge">↻ <%= task.recurring_interval %></span>
-    <% end %>
+    <select class="priority-chip priority-<%= task.priority %>" data-task-id="<%= task.id %>" data-action="change->kanban#updatePriority" style="font-size:0.7rem;padding:0.1rem 0.3rem;border:none;border-radius:4px;cursor:pointer;appearance:none">
+      <option value="low" <%= "selected" if task.priority == "low" %>>Baixa</option>
+      <option value="medium" <%= "selected" if task.priority == "medium" %>>Media</option>
+      <option value="high" <%= "selected" if task.priority == "high" %>>Alta</option>
+    </select>
     <% task.tags.each do |tag| %>
-      <span class="tag-pill"><%= tag.name %></span>
+      <a href="/?tag=<%= tag.name %>" class="tag-pill"><%= tag.name %></a>
     <% end %>
+    <span class="tag-adder">
+      <input type="text" placeholder="+ tag" style="width:50px;font-size:0.65rem;padding:1px 3px;border:1px solid #d1d5db;border-radius:3px" data-action="keydown->kanban#addTagOnEnter">
+      <button data-action="kanban#addTag" data-task-id="<%= task.id %>" style="font-size:0.65rem;background:#e0e7ff;border:none;border-radius:3px;cursor:pointer;padding:0 3px">+</button>
+    </span>
   </div>
 
   <div class="task-actions">
-    <%= button_to "Concluir", task_path(task), method: :patch, params: { task: { completed_at: Time.current.iso8601 } }, class: "btn-complete" %>
-    <%= button_to "Excluir", task_path(task), method: :delete, data: { confirm: "Excluir esta tarefa?" }, class: "btn-delete" %>
+    <button class="btn-wpp" data-action="kanban#openWppModal" data-task-id="<%= task.id %>" data-task-title="<%= task.title %>" title="Enviar WhatsApp">&#128172;</button>
+    <button class="btn-complete" data-action="kanban#completeTask" data-task-id="<%= task.id %>">&#10003;</button>
+    <button class="btn-delete" data-action="kanban#deleteTask" data-task-id="<%= task.id %>">&#10005;</button>
+    <button class="btn-comment" data-action="kanban#addComment" data-task-id="<%= task.id %>" style="background:none;border:1.5px solid #f59e0b;color:#f59e0b;border-radius:4px;cursor:pointer;font-size:0.75rem;padding:0.1rem 0.3rem;display:none" title="Comentar">&#9998;</button>
   </div>
 </div>

@@ -17,8 +17,9 @@ class ConversationState < ApplicationRecord
   end
 
   def set_pending(intent, data = {})
+    custom_state = data.delete(:state) || data.delete("state") || "awaiting_confirmation"
     update!(
-      state: "awaiting_confirmation",
+      state: custom_state,
       pending_intent: intent.to_s,
       pending_data: data.to_json,
       expires_at: 10.minutes.from_now

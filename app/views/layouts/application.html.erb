@@ -10,7 +10,12 @@
     <link rel="icon" href="/icon.png" type="image/png">
     <link rel="icon" href="/icon.svg" type="image/svg+xml">
     <%= stylesheet_link_tag :app, "data-turbo-track": "reload" %>
-    <%= javascript_importmap_tags %>
+    <% if Rails.env.production? %>
+      <%= javascript_importmap_tags %>
+    <% else %>
+      <script type="importmap" data-turbo-track="reload">{"imports":{"application":"/assets/application.js","@hotwired/stimulus":"/assets/vendor/stimulus.js","@hotwired/stimulus-loading":"/assets/vendor/stimulus-loading.js","controllers/application":"/assets/controllers/application.js","controllers/kanban_controller":"/assets/controllers/kanban_controller.js","controllers/calendar_controller":"/assets/controllers/calendar_controller.js","controllers/column_settings_controller":"/assets/controllers/column_settings_controller.js","controllers/filter_controller":"/assets/controllers/filter_controller.js","controllers/inline_edit_controller":"/assets/controllers/inline_edit_controller.js","controllers/modal_controller":"/assets/controllers/modal_controller.js","controllers/task_form_controller":"/assets/controllers/task_form_controller.js","controllers/hello_controller":"/assets/controllers/hello_controller.js","sortablejs":"/assets/vendor/sortablejs.js","chartkick":"/assets/vendor/chartkick.js","Chart.bundle":"/assets/vendor/chart.js"}}</script>
+      <script type="module">import "application"</script>
+    <% end %>
   </head>
   <body>
     <nav>

@@ -1,4 +1,6 @@
 class CalendarController < ApplicationController
+  before_action :set_locale
+
   def index
     @date = parse_date(params[:date])
     @tasks = Task.pending.parent_tasks
@@ -13,9 +15,14 @@ class CalendarController < ApplicationController
     @tasks = Task.pending.parent_tasks
                  .where(due_date: @date.all_day)
                  .order(:due_date)
+    @column = @tasks.first&.column || Column.ordered.first
   end
 
   private
+
+  def set_locale
+    I18n.locale = :'pt-BR'
+  end
 
   def parse_date(date_param)
     date_param ? Date.parse(date_param) : Date.current

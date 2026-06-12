@@ -4,6 +4,8 @@ class Task < ApplicationRecord
   has_many :subtasks, class_name: "Task", foreign_key: :parent_task_id, dependent: :destroy
   has_many :task_tags, dependent: :destroy
   has_many :tags, through: :task_tags
+  has_many_attached :files
+  has_many :comments, dependent: :destroy
 
   validates :title, presence: true
 

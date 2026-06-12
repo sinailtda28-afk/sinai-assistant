@@ -1,0 +1,61 @@
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:2rem;padding:1rem 0">
+  <div class="dash-card">
+    <h3>Contexto da IA</h3>
+    <p style="font-size:0.8rem;color:var(--text-secondary);margin-bottom:0.8rem">Defina como a IA deve se comportar. Ex: "Voce e um assistente da loja Sinai Multimarcas. Seu tom e profissional e amigavel..."</p>
+    <%= form_with url: "/settings", method: :post do |f| %>
+      <div class="form-group">
+        <label>Prompt do sistema</label>
+        <%= f.text_area "settings[ai_context]", rows: 6, value: (@settings["ai_context"] || ""), placeholder: "Voce e um assistente de produtividade pessoal...", style: "width:100%;padding:0.5rem;border:1px solid #d1d5db;border-radius:5px;font-size:0.85rem;background:var(--card-bg);color:var(--text)" %>
+      </div>
+      <div class="form-actions">
+        <%= f.submit "Salvar", class: "btn btn-primary" %>
+      </div>
+    <% end %>
+  </div>
+
+  <div class="dash-card">
+    <h3>Gerenciar Tags</h3>
+    <div class="form-group">
+      <label>Nova tag</label>
+      <div style="display:flex;gap:0.5rem">
+        <input type="text" id="new-tag-name" placeholder="Nome da tag" style="flex:1;padding:0.4rem;border:1px solid #d1d5db;border-radius:5px;font-size:0.85rem" onkeydown="if(event.key==='Enter'){event.preventDefault();createTag()}">
+        <button class="btn btn-primary btn-sm" onclick="createTag()">Criar</button>
+      </div>
+    </div>
+    <div id="tags-list" style="margin-top:0.8rem;display:flex;flex-wrap:wrap;gap:0.4rem">
+      <% Tag.order(:name).each do |tag| %>
+        <span class="tag-pill" style="display:inline-flex;align-items:center;gap:4px;font-size:0.8rem;padding:0.2rem 0.5rem">
+          <%= tag.name %>
+          <button onclick="deleteTag(<%= tag.id %>, this)" style="background:none;border:none;color:#999;cursor:pointer;font-size:0.7rem;padding:0;line-height:1">&times;</button>
+        </span>
+      <% end %>
+    </div>
+  </div>
+</div>
+
+<script>
+  function createTag() {
+    const input = document.getElementById("new-tag-name")
+    const name = input.value.trim()
+    if (!name) return
+    fetch("/tags", {
+      method: "POST",
+      headers: { "X-CSRF-Token": document.querySelector("[name='csrf-token']")?.content || "", "Content-Type": "application/x-www-form-urlencoded" },
+      body: new URLSearchParams({ name })
+    }).then(r => r.json()).then(tag => {
+      const list = document.getElementById("tags-list")
+      list.insertAdjacentHTML("beforeend", `<span class="tag-pill" style="display:inline-flex;align-items:center;gap:4px;font-size:0.8rem;padding:0.2rem 0.5rem">${tag.name} <button onclick="deleteTag(${tag.id}, this)" style="background:none;border:none;color:#999;cursor:pointer;font-size:0.7rem;padding:0;line-height:1">&times;</button></span>`)
+      input.value = ""
+    })
+  }
+
+  function deleteTag(id, btn) {
+    if (!confirm("Excluir esta tag? Ela sera removida de todas as tarefas.")) return
+    fetch("/tags/" + id, {
+      method: "DELETE",
+      headers: { "X-CSRF-Token": document.querySelector("[name='csrf-token']")?.content || "", "Accept": "application/json" }
+    }).then(() => {
+      btn.closest(".tag-pill").remove()
+    })
+  }
+</script>

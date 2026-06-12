@@ -1,0 +1,2 @@
+class WhatsappInstance < ApplicationRecord
+end

@@ -22,6 +22,7 @@ module NLP
 
     def extract_with_regex(text)
       entities = { title: nil, due_date: nil, priority: nil, tags: [], task_query: nil }
+      normalized = normalize(text)
 
       # Extrair titulo (remover palavras de comando)
       title = text.sub(/^(criar|adicionar|nova|novo|preciso fazer|colocar|marcar|concluir|completar|listar|mostrar)\s+/i, "")
@@ -40,18 +41,18 @@ module NLP
       }
 
       date_map.each do |pattern, date|
-        if @text.match?(pattern)
+        if normalized.match?(pattern)
           entities[:due_date] = date
           break
         end
       end
 
       # Extrair prioridade
-      if @text.match?(/\b(urgente|alta|alta prioridade)\b/i)
+      if normalized.match?(/\b(urgente|alta|alta prioridade)\b/i)
         entities[:priority] = "high"
-      elsif @text.match?(/\b(media|media prioridade|normal)\b/i)
+      elsif normalized.match?(/\b(media|media prioridade|normal)\b/i)
         entities[:priority] = "medium"
-      elsif @text.match?(/\b(baixa|baixa prioridade|baixo)\b/i)
+      elsif normalized.match?(/\b(baixa|baixa prioridade|baixo)\b/i)
         entities[:priority] = "low"
       end
 
@@ -69,6 +70,10 @@ module NLP
 
     def needs_llm?(entities)
       entities[:title].blank?
+    end
+
+    def normalize(text)
+      text.unicode_normalize(:nfkd).gsub(/[^\x00-\x7F\s]/, "")
     end
 
     def extract_with_llm(text)

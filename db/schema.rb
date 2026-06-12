@@ -10,13 +10,58 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_06_10_181122) do
+ActiveRecord::Schema[8.1].define(version: 2026_06_11_214512) do
+  create_table "active_storage_attachments", force: :cascade do |t|
+    t.integer "blob_id", null: false
+    t.datetime "created_at", null: false
+    t.string "name", null: false
+    t.integer "record_id", null: false
+    t.string "record_type", null: false
+    t.index ["blob_id"], name: "index_active_storage_attachments_on_blob_id"
+    t.index ["record_type", "record_id", "name", "blob_id"], name: "index_active_storage_attachments_uniqueness", unique: true
+  end
+
+  create_table "active_storage_blobs", force: :cascade do |t|
+    t.bigint "byte_size", null: false
+    t.string "checksum"
+    t.string "content_type"
+    t.datetime "created_at", null: false
+    t.string "filename", null: false
+    t.string "key", null: false
+    t.text "metadata"
+    t.string "service_name", null: false
+    t.index ["key"], name: "index_active_storage_blobs_on_key", unique: true
+  end
+
+  create_table "active_storage_variant_records", force: :cascade do |t|
+    t.integer "blob_id", null: false
+    t.string "variation_digest", null: false
+    t.index ["blob_id", "variation_digest"], name: "index_active_storage_variant_records_uniqueness", unique: true
+  end
+
+  create_table "calendar_tokens", id: :integer, default: nil, force: :cascade do |t|
+    t.text "access_token"
+    t.text "created_at"
+    t.text "expires_at"
+    t.text "google_sync_token"
+    t.text "refresh_token"
+    t.text "updated_at"
+  end
+
   create_table "columns", force: :cascade do |t|
     t.string "color", default: "#6b7280"
     t.datetime "created_at", null: false
     t.string "name", null: false
     t.integer "position", default: 0, null: false
     t.datetime "updated_at", null: false
+  end
+
+  create_table "comments", force: :cascade do |t|
+    t.text "content"
+    t.datetime "created_at", null: false
+    t.integer "task_id", null: false
+    t.datetime "updated_at", null: false
+    t.index ["task_id"], name: "index_comments_on_task_id"
   end
 
   create_table "conversation_states", force: :cascade do |t|
@@ -28,6 +73,17 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_10_181122) do
     t.string "state", default: "idle", null: false
     t.datetime "updated_at", null: false
     t.index ["chat_id"], name: "index_conversation_states_on_chat_id", unique: true
+  end
+
+  create_table "notification_settings", id: :integer, default: nil, force: :cascade do |t|
+    t.text "channel", null: false
+    t.text "created_at"
+    t.integer "daily_summary", default: 1
+    t.integer "overdue_alert", default: 1
+    t.text "quiet_end"
+    t.text "quiet_start"
+    t.integer "reminder_minutes", default: 30
+    t.text "updated_at"
   end
 
   create_table "settings", force: :cascade do |t|
@@ -72,6 +128,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_10_181122) do
     t.text "description"
     t.datetime "due_date"
     t.boolean "is_recurring", default: false
+    t.string "link"
     t.integer "parent_task_id"
     t.integer "position", default: 0
     t.integer "priority", default: 1
@@ -103,6 +160,17 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_10_181122) do
     t.index ["update_id"], name: "index_telegram_messages_on_update_id", unique: true
   end
 
+  create_table "whatsapp_instances", force: :cascade do |t|
+    t.boolean "active"
+    t.datetime "created_at", null: false
+    t.string "name"
+    t.string "number"
+    t.datetime "updated_at", null: false
+  end
+
+  add_foreign_key "active_storage_attachments", "active_storage_blobs", column: "blob_id"
+  add_foreign_key "active_storage_variant_records", "active_storage_blobs", column: "blob_id"
+  add_foreign_key "comments", "tasks"
   add_foreign_key "subtasks", "tasks"
   add_foreign_key "task_tags", "tags"
   add_foreign_key "task_tags", "tasks"

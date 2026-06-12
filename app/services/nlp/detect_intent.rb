@@ -7,7 +7,8 @@ module NLP
     end
 
     def call
-      text_lower = @text.downcase
+      text_lower = normalize(@text)
+      text_lower = text_lower.downcase
 
       intent = case text_lower
       when /^(criar|adicionar|nova|novo|preciso fazer|colocar|marcar)\b/
@@ -32,6 +33,10 @@ module NLP
     end
 
     private
+
+    def normalize(text)
+      text.unicode_normalize(:nfkd).gsub(/[^\x00-\x7F]/, "")
+    end
 
     def llm_detect
       return :create_task unless defined?(RubyLLM::Chat)

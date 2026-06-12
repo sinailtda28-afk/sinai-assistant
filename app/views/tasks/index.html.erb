@@ -1,49 +1,196 @@
-<div class="kanban-toolbar">
-  <button class="btn btn-primary" data-action="click->modal#open" data-modal-target="new-task-modal">
-    + Nova Tarefa
-  </button>
-</div>
+<div data-controller="kanban">
+  <div class="kanban-toolbar">
+    <button class="btn btn-primary" data-action="kanban#openModal">+ Nova Tarefa</button>
+    <button class="btn btn-primary" data-action="kanban#openColumnModal">+ Nova Coluna</button>
+    <button class="btn btn-secondary" data-action="kanban#toggleAIChat">&#128172; IA</button>
+    <button class="btn btn-secondary" data-action="kanban#showWppQr">&#128172; WhatsApp</button>
+  </div>
 
-<div class="filter-bar" data-controller="filter">
-  <%= form_with url: root_path, method: :get, data: { filter_target: "form" }, class: "filter-form" do |f| %>
-    <div class="filter-group">
-      <%= f.label :priority, "Prioridade" %>
-      <%= f.select :priority, options_for_select([["Todas", ""], ["Alta", "high"], ["Média", "medium"], ["Baixa", "low"]], params[:priority]), {}, class: "filter-select", data: { action: "change->filter#submit" } %>
+  <div class="modal-overlay" data-kanban-target="qrModal" style="display:none">
+    <div class="modal-content" style="text-align:center">
+      <h2>&#128172; Conectar WhatsApp</h2>
+      <div id="qr-container" style="margin:1rem 0">
+        <div id="qr-status">Carregando QR code...</div>
+        <img id="qr-image" src="" style="max-width:280px;display:none" alt="QR Code">
+      </div>
+      <p style="font-size:0.8rem;color:var(--text-secondary)">Abra o WhatsApp no celular, va em <strong>Dispositivos vinculados</strong> e escaneie o QR code.</p>
+      <div class="form-actions" style="justify-content:center">
+        <button class="btn btn-primary" data-action="kanban#refreshQr">Atualizar QR</button>
+        <button class="btn btn-secondary" data-action="kanban#closeQrModal">Fechar</button>
+      </div>
     </div>
+  </div>
 
-    <div class="filter-group">
-      <%= f.label :tag, "Tag" %>
-      <%= f.select :tag, options_for_select([["Todas", ""]] + @tags.map { |t| [t.name, t.name] }, params[:tag]), {}, class: "filter-select", data: { action: "change->filter#submit" } %>
+  <div id="ai-chat-sidebar" data-kanban-target="aiChat" style="display:none;position:fixed;right:0;top:48px;width:380px;height:calc(100vh - 48px);background:#1a1a2e;color:#eee;z-index:200;box-shadow:-2px 0 10px rgba(0,0,0,0.3)">
+    <div style="padding:10px 15px;background:#16213e;display:flex;justify-content:space-between;align-items:center">
+      <strong>&#128172; Assistente IA</strong>
+      <button data-action="kanban#toggleAIChat" style="background:none;border:none;color:#888;cursor:pointer;font-size:1.2rem">&times;</button>
     </div>
-
-    <div class="filter-group">
-      <%= f.label :start_date, "De" %>
-      <%= f.date_field :start_date, value: params[:start_date], data: { action: "change->filter#submit" }, class: "filter-date" %>
+    <div id="ai-messages" style="flex:1;overflow-y:auto;padding:15px;font-size:0.85rem;line-height:1.5"></div>
+    <div style="padding:10px;border-top:1px solid #333">
+      <textarea id="ai-input" placeholder="Pergunte sobre suas tarefas..." style="width:100%;padding:8px;border:1px solid #444;border-radius:6px;background:#2a2a4a;color:#eee;resize:none;font-size:0.85rem;height:50px" data-action="keydown->kanban#aiOnEnter"></textarea>
+      <button data-action="kanban#aiSend" style="margin-top:5px;width:100%;padding:6px;background:#3b82f6;color:white;border:none;border-radius:4px;cursor:pointer">Enviar</button>
     </div>
+  </div>
 
-    <div class="filter-group">
-      <%= f.label :end_date, "Até" %>
-      <%= f.date_field :end_date, value: params[:end_date], data: { action: "change->filter#submit" }, class: "filter-date" %>
+  <div class="filter-bar">
+    <div class="filter-quick">
+      <button class="btn btn-sm" data-action="kanban#filterToday">Hoje</button>
+      <button class="btn btn-sm" data-action="kanban#filterWeek">Esta Semana</button>
+      <button class="btn btn-sm" data-action="kanban#filterMonth">Este Mes</button>
+      <%= link_to "Limpar", root_path, class: "btn btn-sm btn-secondary" %>
     </div>
-
-    <% if params[:priority].present? || params[:tag].present? || params[:start_date].present? || params[:end_date].present? %>
+    <div class="filter-form">
       <div class="filter-group">
-        <%= label_tag :reset, "&nbsp;".html_safe %>
-        <%= link_to "Limpar filtros", root_path, class: "btn btn-secondary btn-sm" %>
+        <label>Prioridade</label>
+        <select data-action="change->kanban#filter" data-kanban-target="priorityFilter">
+          <option value="">Todas</option>
+          <option value="high" <%= "selected" if params[:priority] == "high" %>>Alta</option>
+          <option value="medium" <%= "selected" if params[:priority] == "medium" %>>Media</option>
+          <option value="low" <%= "selected" if params[:priority] == "low" %>>Baixa</option>
+        </select>
+      </div>
+      <div class="filter-group">
+        <label>Tag</label>
+        <select data-action="change->kanban#filter" data-kanban-target="tagFilter">
+          <option value="">Todas</option>
+          <% @tags.each do |tag| %>
+            <option value="<%= tag.name %>" <%= "selected" if params[:tag] == tag.name %>><%= tag.name %></option>
+          <% end %>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-overlay" data-kanban-target="taskModal" style="display:none">
+    <div class="modal-content">
+      <h2>Nova Tarefa</h2>
+      <%= form_with model: Task.new, html: { data: { action: "submit->kanban#createTask" } }, class: "task-form" do |f| %>
+        <div class="form-group">
+          <label>Titulo</label>
+          <%= f.text_field :title, required: true, placeholder: "O que precisa ser feito?", data: { kanban_target: "taskTitle" } %>
+        </div>
+        <div class="form-group">
+          <label>Descricao</label>
+          <%= f.text_area :description, rows: 2, placeholder: "Detalhes (opcional)", data: { kanban_target: "taskDesc" } %>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Prazo</label>
+            <%= f.date_field :due_date, data: { kanban_target: "taskDue" } %>
+          </div>
+          <div class="form-group">
+            <label>Prioridade</label>
+            <%= f.select :priority, [["Baixa", "low"], ["Media", "medium"], ["Alta", "high"]], { selected: "medium" }, data: { kanban_target: "taskPriority" } %>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Tags (virgula)</label>
+          <%= f.text_field :tags, value: "", placeholder: "ex: trabalho, pessoal", data: { kanban_target: "taskTags" } %>
+        </div>
+        <div class="form-group">
+          <label>Coluna</label>
+          <%= f.collection_select :column_id, Column.ordered, :id, :name, {}, data: { kanban_target: "taskColumn" } %>
+        </div>
+        <div class="form-group">
+          <label>Link</label>
+          <%= f.url_field :link, placeholder: "https://...", data: { kanban_target: "taskLink" } %>
+        </div>
+        <div class="form-group">
+          <label>Anexos</label>
+          <%= f.file_field :files, multiple: true, id: "task-files-input", data: { kanban_target: "taskFiles" } %>
+        </div>
+        <div class="form-actions">
+          <%= f.submit "Criar", class: "btn btn-primary" %>
+          <button type="button" class="btn btn-secondary" data-action="kanban#closeTaskModal">Cancelar</button>
+        </div>
+      <% end %>
+    </div>
+  </div>
+
+  <div class="modal-overlay" data-kanban-target="columnModal" style="display:none">
+    <div class="modal-content">
+      <h2>Nova Coluna</h2>
+      <%= form_with model: Column.new, html: { data: { action: "submit->kanban#createColumn" } } do |f| %>
+        <div class="form-group">
+          <label>Nome</label>
+          <%= f.text_field :name, required: true, placeholder: "Nome da coluna", data: { kanban_target: "colName" } %>
+        </div>
+        <div class="form-group">
+          <label>Cor</label>
+          <%= f.color_field :color, value: "#6b7280", data: { kanban_target: "colColor" } %>
+        </div>
+        <div class="form-actions">
+          <%= f.submit "Criar", class: "btn btn-primary" %>
+          <button type="button" class="btn btn-secondary" data-action="kanban#closeColumnModal">Cancelar</button>
+        </div>
+      <% end %>
+    </div>
+  </div>
+
+  <div class="modal-overlay" data-kanban-target="editColumnModal" style="display:none">
+    <div class="modal-content">
+      <h2>Editar Coluna</h2>
+      <%= form_with url: "/columns/0", method: :patch, html: { data: { action: "submit->kanban#updateColumn" } } do |f| %>
+        <%= hidden_field_tag :id, nil, data: { kanban_target: "editColId" } %>
+        <div class="form-group">
+          <label>Nome</label>
+          <%= text_field_tag :"column[name]", nil, required: true, data: { kanban_target: "editColName" } %>
+        </div>
+        <div class="form-group">
+          <label>Cor</label>
+          <%= color_field_tag :"column[color]", "#6b7280", data: { kanban_target: "editColColor" } %>
+        </div>
+        <div class="form-actions">
+          <button type="submit" class="btn btn-primary">Salvar</button>
+          <button type="button" class="btn btn-danger" data-action="kanban#deleteColumn">Excluir</button>
+          <button type="button" class="btn btn-secondary" data-action="kanban#closeEditColumnModal">Cancelar</button>
+        </div>
+      <% end %>
+    </div>
+  </div>
+
+  <div class="modal-overlay" data-kanban-target="wppModal" style="display:none">
+    <div class="modal-content">
+      <h2>&#128172; Enviar WhatsApp</h2>
+      <div class="form-group">
+        <label>Instancia (numero)</label>
+        <select data-kanban-target="wppInstance" id="wpp-instance-select">
+          <option value="default">Default</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Numero do destinatario</label>
+        <input type="tel" data-kanban-target="wppNumber" placeholder="5511999999999" data-action="keydown->kanban#wppNumberOnEnter">
+      </div>
+      <div class="form-group">
+        <label>Mensagem</label>
+        <textarea data-kanban-target="wppMessage" rows="4" placeholder="Digite a mensagem..."></textarea>
+      </div>
+      <div class="form-actions">
+        <button class="btn btn-secondary" data-action="kanban#generateWppMessage">Gerar com IA</button>
+        <button class="btn btn-primary" data-action="kanban#sendWpp">Enviar</button>
+        <button type="button" class="btn btn-secondary" data-action="kanban#closeWppModal">Cancelar</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="kanban-board" data-kanban-target="board">
+    <% @columns.each do |column| %>
+      <div class="kanban-column" style="border-top-color: <%= column.color %>" data-column-id="<%= column.id %>">
+        <h3>
+          <%= column.name %> (<span class="task-count"><%= column.tasks.count %></span>)
+          <button class="column-settings-btn" data-action="kanban#openEditColumn" title="Configurar">&#9881;</button>
+        </h3>
+        <div class="kanban-tasks" data-column-id="<%= column.id %>">
+          <% column.tasks.each do |task| %>
+            <%= render "tasks/task_card", task: task %>
+          <% end %>
+        </div>
+        <div class="inline-task-form">
+          <input type="text" placeholder="+ Adicionar tarefa" data-action="click->kanban#expandInlineForm keydown->kanban#inlineCreateOnEnter">
+        </div>
       </div>
     <% end %>
-  <% end %>
-</div>
-
-<div class="modal-overlay" data-controller="modal" data-modal-target="overlay" style="display:none">
-  <div class="modal-content" id="new-task-modal">
-    <h2>Nova Tarefa</h2>
-    <%= render "tasks/form", task: Task.new %>
   </div>
-</div>
-
-<div class="kanban-board" data-controller="kanban">
-  <% @columns.each do |column| %>
-    <%= render "columns/column", column: column %>
-  <% end %>
 </div>
